@@ -16,7 +16,7 @@ class Ventana:
         self.grafica = tk.Frame(self.window, width=600, height=600, background="#000")
         self.grafica.pack(side='right')
 
-        numeroNeuronas = tk.StringVar(value=str(0))
+        self.numeroNeuronas = tk.StringVar(value=str(1))
         numeroNeuronasFrame = tk.Frame(acciones)
         numeroNeuronasLabel = tk.Label(numeroNeuronasFrame, text="Numero de neuronas:")
         numeroNeuronasLabel.pack(side='top')
@@ -24,16 +24,16 @@ class Ventana:
         numeroNeuronasInput.pack(fill='both')
         numeroNeuronasContador = tk.Frame(numeroNeuronasInput)
         numeroNeuronasContador.pack(side='bottom')
-        numeroNeuronasEntry = tk.Entry(master=numeroNeuronasContador, textvariable=numeroNeuronas)
+        numeroNeuronasEntry = tk.Entry(master=numeroNeuronasContador, textvariable=self.numeroNeuronas)
         numeroNeuronasEntry.pack(side='left')
         aumentarNeuronasBtn = tk.Button(
             master=numeroNeuronasContador,
-            command=lambda numeroNeuronas=numeroNeuronas: numeroNeuronas.set(str( int(numeroNeuronas.get()) + 1 )),
+            command=lambda: self.numeroNeuronas.set(str( int(self.numeroNeuronas.get()) + 1 )),
             height=1,width=1,text="+")
         aumentarNeuronasBtn.pack(side='left')
         reducirNeuronasBtn = tk.Button(
             master=numeroNeuronasContador,
-            command=lambda numeroNeuronas=numeroNeuronas: numeroNeuronas.set(str( int(numeroNeuronas.get()) - 1 )),
+            command=lambda: self.numeroNeuronas.set(str( int(self.numeroNeuronas.get()) - 1 )),
             height=1,width=1,text="-")
         reducirNeuronasBtn.pack(side='left')
         numeroNeuronasFrame.pack(padx=10, pady=10)
@@ -86,9 +86,14 @@ class Ventana:
     def entrenarPerceptron(self):
         X = self.leerDatos('X.csv').T
         Y = self.leerDatos('Y.csv')
-        
+        n_entradas = X.shape[0] # 2 porque solo hay X1 y X2
+        n_neuronas = int(self.numeroNeuronas.get())
+        net = RedNeuronalUnicapa(n_entradas, n_neuronas, logistic)
+        net.fit(X,Y)
+        Y_est = net.predict(X)
+        print('Resultados Originales\n',Y)
+        print('Resultados Predecidos\n',Y_est)
         self.dibujarResultados(X)
-        print('Resultados Originales',Y)
 
 ### Funciones de activacion
 def linear(z, derivada=False):
