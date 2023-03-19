@@ -1,98 +1,107 @@
+import tkinter as tk
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-def linear(z, derivative=False):
+class Ventana:
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title('Practica 4 Red Neuronal Unicapa')
+        self.window.resizable(False,False)
+        self.window.protocol("WM_DELETE_WINDOW", self.cerrar)
+
+        acciones = tk.Frame(self.window)
+        acciones.pack(side='left', fill='both') 
+
+        self.grafica = tk.Frame(self.window, width=600, height=600, background="#000")
+        self.grafica.pack(side='right')
+
+        numeroNeuronas = tk.StringVar(value=str(0))
+        numeroNeuronasFrame = tk.Frame(acciones)
+        numeroNeuronasLabel = tk.Label(numeroNeuronasFrame, text="Numero de neuronas:")
+        numeroNeuronasLabel.pack(side='top')
+        numeroNeuronasInput = tk.Frame(numeroNeuronasFrame)
+        numeroNeuronasInput.pack(fill='both')
+        numeroNeuronasContador = tk.Frame(numeroNeuronasInput)
+        numeroNeuronasContador.pack(side='bottom')
+        numeroNeuronasEntry = tk.Entry(master=numeroNeuronasContador, textvariable=numeroNeuronas)
+        numeroNeuronasEntry.pack(side='left')
+        aumentarNeuronasBtn = tk.Button(
+            master=numeroNeuronasContador,
+            command=lambda numeroNeuronas=numeroNeuronas: numeroNeuronas.set(str( int(numeroNeuronas.get()) + 1 )),
+            height=1,width=1,text="+")
+        aumentarNeuronasBtn.pack(side='left')
+        reducirNeuronasBtn = tk.Button(
+            master=numeroNeuronasContador,
+            command=lambda numeroNeuronas=numeroNeuronas: numeroNeuronas.set(str( int(numeroNeuronas.get()) - 1 )),
+            height=1,width=1,text="-")
+        reducirNeuronasBtn.pack(side='left')
+        numeroNeuronasFrame.pack(padx=10, pady=10)
+
+        creardatosBtn = tk.Button(
+            master = acciones,
+            command = self.cerrar,
+            height = 2,
+            width = 20,
+            text = "Generar dataset")
+        creardatosBtn.pack(padx=10, pady=(0,10))
+
+        procesarBtn = tk.Button(
+            master = acciones,
+            command = self.cerrar,
+            height = 2,
+            width = 20,
+            text = "Comenzar entrenamiento")
+        procesarBtn.pack(padx=10, pady=(0,10))
+
+        self.window.mainloop()
+    def cerrar(self):
+        self.window.quit()
+
+### Funciones de activacion
+def linear(z, derivada=False):
     a = z
-    if derivative:
+    if derivada:
         da = np.ones(z.shape)
         return a, da
     return a
 
-def logistic(z, derivative=False):
+def logistic(z, derivada=False):
     a = 1 / (1 + np.exp(-z))
-    if derivative:
+    if derivada:
         da = np.ones(z.shape)
         return a, da
     return a
 
-def softmax(z, derivative=False):
-    e_z = np.exp(z - np.max(z, axis=0))
-    a = e_z / np.sum(e_z, axis=0)
-    if derivative:
-        da = np.ones(z.shape)
+def tanh(z, derivada=False):
+    a = np.tanh(z)
+    if derivada:
+        da = (1 - a) * (1 + a)
         return a, da
     return a
 
-class OLN:
-    def __init__(self, n_inputs, n_outputs,
-                 activation_function=linear):
+class RedNeuronalUnicapa:
+    def __init__(self, n_inputs, n_outputs, funcionActivacion=linear):
         self.w = -1 + 2 * np.random.rand(n_outputs, n_inputs)
         self.b = -1 + 2 * np.random.rand(n_outputs, 1)
-        self.f = activation_function
+        self.f = funcionActivacion
 
     def predict(self, X):
         Z = self.w @ X + self.b
         return self.f(Z)
     
-    def fit(self, X, Y, epochs = 500, lr = 0.1):
+    def fit(self, X, Y, epocas=500, factorAprendizaje=0.1):
         p = X.shape[1]
-        for _ in range(epochs):
+        for _ in range(epocas):
             # Propagar la red
             Z = self.w @ X + self.b
-            Yest, dY = self.f(Z, derivative=True)
+            Yest, dY = self.f(Z, derivada=True)
             
             # Calcular el gradiente
             lg = (Y - Yest) * dY
 
             # Actualización de parámetros
-            self.w += (lr/p) * lg @ X.T
-            self.b += (lr/p) * np.sum(lg)
+            self.w += (factorAprendizaje/p) * lg @ X.T
+            self.b += (factorAprendizaje/p) * np.sum(lg)
 
-
-# Ejemplo del profe
-xmin, xmax = -5, 5
-
-classes = 8
-p_c = 20
-ruido = 0.15
-X = np.zeros((2,classes*p_c))
-Y = np.zeros((classes, classes * p_c))
-
-for i in range(classes):
-    seed = xmin + (xmax - xmin) * np.random.rand(2,1)
-    X[:,i*p_c:(i+1)*p_c] = seed + ruido * np.random.rand(2, p_c)
-    Y[:,i*p_c:(i+1)*p_c] = np.ones((1, p_c))
-
-# Dos entradas, 8 salidas, softmax porque es multiclase
-net = OLN(2, classes, softmax)
-net.fit(X,Y)
-
-# Dibujo
-
-import matplotlib.pyplot as plt
-
-cm = [[0,0,0],
-      [1,0,0],
-      [0,1,0],
-      [1,1,0],
-      [0,0,1],
-      [1,0,1],
-      [0,1,1],
-      [1,1,1]]
-
-ax1 = plt.subplot(1,2,1)
-y_c = np.argmax(Y, axis=0)
-for i in range(X.shape[1]):
-    ax1.plot(X[0,i], X[1, i], '*', c=cm[y_c[i]])
-ax1.axis([-5.5,5.5,-5.5,5.5])
-ax1.grid()
-ax1.set_title('Problema original')
-
-ax2 = plt.subplot(1,2,2)
-y_c = np.argmax(net.predict(X), axis=0)
-for i in range(X.shape[1]):
-    ax2.plot(X[0,i], X[1, i], '*', c=cm[y_c[i]])
-ax2.axis([-5.5,5.5,-5.5,5.5])
-ax2.grid()
-ax2.set_title('Predicción de la red')
-
-plt.show()
+app = Ventana()
