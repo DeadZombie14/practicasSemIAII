@@ -48,17 +48,47 @@ class Ventana:
 
         procesarBtn = tk.Button(
             master = acciones,
-            command = self.cerrar,
+            command = self.entrenarPerceptron,
             height = 2,
             width = 20,
             text = "Comenzar entrenamiento")
         procesarBtn.pack(padx=10, pady=(0,10))
 
         self.window.mainloop()
+    def leerDatos(self, archivo):
+        datos = np.loadtxt(
+            fname= archivo,
+            delimiter=',')
+        return datos
     def generarDataset(self):
         self.ventana2 = VentanaGenerarDataset(self.window)
     def cerrar(self):
         self.window.quit()
+    def dibujarResultados(self, X):
+        fig = plt.figure(figsize = (600/100, 600/100), dpi = 100)
+        plot = fig.add_subplot()
+        canvas = FigureCanvasTkAgg(
+            figure= fig,
+            master = self.grafica)  
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+
+        plot.clear()
+        plot.set_title('Red Neuronal Unicapa')
+        plot.grid('on')
+        plot.set_xlim([-2,2])
+        plot.set_ylim([-2,2])
+        plot.set_xlabel(r'$x_1$')
+        plot.set_ylabel(r'$x_2$')
+        # Dibujar puntos
+        for i in range(X.shape[1]):
+            plot.plot(X[0,i], X[1,i], 'or')
+    def entrenarPerceptron(self):
+        X = self.leerDatos('X.csv').T
+        Y = self.leerDatos('Y.csv')
+        
+        self.dibujarResultados(X)
+        print('Resultados Originales',Y)
 
 ### Funciones de activacion
 def linear(z, derivada=False):
