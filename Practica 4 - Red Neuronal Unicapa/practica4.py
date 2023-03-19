@@ -40,7 +40,7 @@ class Ventana:
 
         creardatosBtn = tk.Button(
             master = acciones,
-            command = self.cerrar,
+            command = self.generarDataset,
             height = 2,
             width = 20,
             text = "Generar dataset")
@@ -55,6 +55,8 @@ class Ventana:
         procesarBtn.pack(padx=10, pady=(0,10))
 
         self.window.mainloop()
+    def generarDataset(self):
+        self.ventana2 = VentanaGenerarDataset(self.window)
     def cerrar(self):
         self.window.quit()
 
@@ -103,5 +105,95 @@ class RedNeuronalUnicapa:
             # Actualización de parámetros
             self.w += (factorAprendizaje/p) * lg @ X.T
             self.b += (factorAprendizaje/p) * np.sum(lg)
+
+class VentanaGenerarDataset:
+    def __init__(self, ventanaPadre=None):
+        self.X = []
+        self.Y = []
+        self.window = tk.Toplevel(ventanaPadre)
+        self.window.title('Generar datos')
+        self.window.resizable(False,False)
+        self.window.protocol("WM_DELETE_WINDOW", self.cerrar)
+
+        acciones = tk.Frame(self.window)
+        acciones.pack(side='left', fill='both') 
+        grafica = tk.Frame(self.window, width=600, height=600, background="#000")
+        grafica.pack(side='right')
+
+        guardarBtn = tk.Button(
+            master = acciones,
+            command = self.guardar,
+            height = 2,
+            width = 10,
+            text = "Guardar")
+        guardarBtn.pack()
+
+        self.valorY = tk.StringVar(value=str(0))
+        valorYFrame = tk.Frame(acciones)
+        valorYLabel = tk.Label(master=valorYFrame, text="Valor Y:")
+        valorYLabel.pack(side='top')
+        valorYEntry = tk.Entry(master=valorYFrame, textvariable=self.valorY, state='disabled')
+        valorYEntry.pack(side='bottom')
+        valorYFrame.pack(padx=10, pady=10)
+
+        seleccionarColorYBtn = tk.Button(
+            master = acciones,
+            command = self.generarColor,
+            height = 2,
+            width = 10,
+            text = "Seleccionar")
+        seleccionarColorYBtn.pack()
+        
+        # Dibujar la grafica
+        self.fig = plt.figure(figsize = (5, 5), dpi = 100)
+        # Conectar evento click
+        self.fig.canvas.mpl_connect('button_press_event', self.generarDato)
+
+        self.plot = self.fig.add_subplot()
+        self.plot.set_title('Haz clic para colocar punto')
+        self.plot.grid('on')
+        self.plot.set_xlim([-2,2])
+        self.plot.set_ylim([-2,2])
+        self.plot.set_xlabel(r'$x_1$')
+        self.plot.set_ylabel(r'$x_2$')
+        
+        canvas = FigureCanvasTkAgg(
+            figure= self.fig,
+            master = grafica)  
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+        canvas.get_tk_widget().pack()
+
+        self.window.mainloop()
+
+    def cerrar(self):
+        self.window.destroy()
+    
+    def generarColor(self):
+        from tkinter.colorchooser import askcolor
+        colorRGB = askcolor(title="Selecciona un color para dar valor a Y:", parent=self.window)
+        valor = np.average(np.asarray(colorRGB[0])/255)
+        self.colorY = colorRGB[1]
+        self.valorY.set(str(valor))
+
+    def generarDato(self, event):
+        valorDeseado = float(self.valorY.get())
+        self.plot.plot(event.xdata, event.ydata, marker='o', color=self.colorY)
+        self.X.append([event.xdata, event.ydata])
+        self.Y.append(valorDeseado)
+        self.fig.canvas.draw()
+    
+    def guardar(self):
+        self.crearDatos('X.csv', self.X)
+        self.crearDatos('Y.csv', self.Y)
+        self.window.destroy()
+
+    def crearDatos(self, archivo, datos):
+        datos = np.array(datos)
+        np.savetxt(
+            fname= archivo,
+            X= datos,
+            fmt='%.5f',
+            delimiter=',')
 
 app = Ventana()
