@@ -64,7 +64,7 @@ class Ventana:
         self.ventana2 = VentanaGenerarDataset(self.window)
     def cerrar(self):
         self.window.quit()
-    def dibujarResultados(self, X):
+    def dibujarResultados(self, X, Y, Y_est, net):
         fig = plt.figure(figsize = (600/100, 600/100), dpi = 100)
         plot = fig.add_subplot()
         canvas = FigureCanvasTkAgg(
@@ -83,6 +83,15 @@ class Ventana:
         # Dibujar puntos
         for i in range(X.shape[1]):
             plot.plot(X[0,i], X[1,i], 'or')
+        # Dibujar contornos de resultados
+        xmin, ymin=np.min(X[0,:])-0.5, np.min(X[1,:])-0.5
+        xmax, ymax=np.max(X[0,:])+0.5, np.max(X[1,:])+0.5
+        xx, yy = np.meshgrid(np.linspace(xmin,xmax, 100),np.linspace(ymin,ymax, 100))
+        data = [xx.ravel(), yy.ravel()]
+        zz = net.predict(data)
+        zz = zz.reshape(xx.shape)
+        plt.contour(xx,yy,zz,[0.5], colors='k',  linestyles='--', linewidths=2)
+        plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.RdBu)
     def entrenarPerceptron(self):
         X = self.leerDatos('X.csv').T
         Y = self.leerDatos('Y.csv')
@@ -93,7 +102,7 @@ class Ventana:
         Y_est = net.predict(X)
         print('Resultados Originales\n',Y)
         print('Resultados Predecidos\n',Y_est)
-        self.dibujarResultados(X)
+        self.dibujarResultados(X, Y, Y_est, net)
 
 ### Funciones de activacion
 def linear(z, derivada=False):
