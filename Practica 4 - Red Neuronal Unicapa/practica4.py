@@ -136,6 +136,12 @@ class VentanaGenerarDataset:
         valorYEntry.pack(side='bottom')
         valorYFrame.pack(padx=10, pady=10)
 
+        # Generar el primer dato al azar
+        colorRandomRGB = tuple(np.random.choice(range(256), size=3))
+        valor = np.average(np.asarray(colorRandomRGB)/255)
+        self.colorY = '#%02x%02x%02x' % colorRandomRGB
+        self.valorY.set(str(valor))
+
         seleccionarColorYBtn = tk.Button(
             master = acciones,
             command = self.generarColor,
