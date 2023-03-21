@@ -95,8 +95,7 @@ class Ventana:
         data = np.array([xx.ravel(), yy.ravel()])
         zz = net.predict(data)
         zz = zz.reshape(xx.shape)
-        plt.contour(xx,yy,zz,[0.5], colors='k',  linestyles='--', linewidths=2)
-        plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.RdBu)
+        plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.Paired)
         self.canvas.draw()
     def entrenarPerceptron(self):
         X = self.leerDatos('X.csv').T
