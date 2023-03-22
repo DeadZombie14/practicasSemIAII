@@ -61,7 +61,7 @@ class Ventana:
 
         procesarBtn = tk.Button(
             master = acciones,
-            command = self.entrenarPerceptron,
+            command = self.entrenarRedNeuronal,
             height = 2,
             width = 20,
             text = "Entrenar")
@@ -85,9 +85,18 @@ class Ventana:
         plot.set_ylim([-2,2])
         plot.set_xlabel(r'$x_1$')
         plot.set_ylabel(r'$x_2$')
+
+        colores = [[0,0,0],
+                   [1,0,0],
+                   [0,1,0],
+                   [1,1,0],
+                   [0,0,1],
+                   [1,0,1],
+                   [0,1,1],
+                   [1,1,1]]
         # Dibujar puntos
         for i in range(X.shape[1]):
-            plot.plot(X[0,i], X[1,i], 'or')
+            plot.plot(X[0,i], X[1,i], marker='o', color=colores[int(Y[i] * 10)])
         # Dibujar contornos de resultados
         xmin, ymin=np.min(X[0,:])-0.5, np.min(X[1,:])-0.5
         xmax, ymax=np.max(X[0,:])+0.5, np.max(X[1,:])+0.5
@@ -95,7 +104,8 @@ class Ventana:
         data = np.array([xx.ravel(), yy.ravel()])
         zz = net.predict(data)
         zz = zz.reshape(xx.shape)
-        plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.Paired)
+        print(plt.cm)
+        plot.contourf(xx,yy,zz, alpha=0.8, cmap='hsv')
 
         # Dibujar lineas una por neurona
         #print('w',net.w)
@@ -107,7 +117,7 @@ class Ventana:
         #     plot.plot([-2,2], [(1/w2)*(-w1*(-2)-b), (1/w2)*(-w1*2-b)], '--b')
 
         self.canvas.draw()
-    def entrenarPerceptron(self):
+    def entrenarRedNeuronal(self):
         X = self.leerDatos('X.csv').T
         Y = self.leerDatos('Y.csv')
         n_entradas = X.shape[0] # 2 porque solo hay X1 y X2
