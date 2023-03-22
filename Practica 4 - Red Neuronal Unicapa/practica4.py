@@ -89,23 +89,30 @@ class Ventana:
         for i in range(X.shape[1]):
             plot.plot(X[0,i], X[1,i], 'or')
         # Dibujar contornos de resultados
-        xmin, ymin=np.min(X[0,:])-0.5, np.min(X[1,:])-0.5
-        xmax, ymax=np.max(X[0,:])+0.5, np.max(X[1,:])+0.5
-        xx, yy = np.meshgrid(np.linspace(xmin,xmax, 100),np.linspace(ymin,ymax, 100))
-        data = np.array([xx.ravel(), yy.ravel()])
-        zz = net.predict(data)
-        zz = zz.reshape(xx.shape)
-        plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.Paired)
+        # xmin, ymin=np.min(X[0,:])-0.5, np.min(X[1,:])-0.5
+        # xmax, ymax=np.max(X[0,:])+0.5, np.max(X[1,:])+0.5
+        # xx, yy = np.meshgrid(np.linspace(xmin,xmax, 100),np.linspace(ymin,ymax, 100))
+        # data = np.array([xx.ravel(), yy.ravel()])
+        # zz = net.predict(data)
+        # zz = zz.reshape(xx.shape)
+        # plt.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.Paired)
+
+        # Dibujar lineas una por neurona
+        for i in range(int(self.numeroNeuronas.get())):
+            w1, w2, b = net.w[i][0], net.w[i][1], net.b[i]
+            plot.plot([-2,2], [(1/w2)*(-w1*(-2)-b), (1/w2)*(-w1*2-b)], '--b')
+            #print('w',net.w[i])
+
         self.canvas.draw()
     def entrenarPerceptron(self):
         X = self.leerDatos('X.csv').T
         Y = self.leerDatos('Y.csv')
         n_entradas = X.shape[0] # 2 porque solo hay X1 y X2
         n_neuronas = int(self.numeroNeuronas.get())
-        #net = RedNeuronalUnicapa(n_entradas, n_neuronas, logistic)
-        ultimacapa_tam = 1
         epocas = int(self.epocas.get())
-        net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam))
+        #ultimacapa_tam = 1
+        #net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam),output_activation=linear)
+        net = RedNeuronalUnicapa(n_entradas, n_neuronas,linear)
         net.fit(X,Y, epocas)
         Y_est = net.predict(X)
         print('Resultados Originales\n',Y)
