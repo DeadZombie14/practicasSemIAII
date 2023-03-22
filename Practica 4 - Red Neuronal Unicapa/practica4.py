@@ -105,7 +105,7 @@ class Ventana:
         zz = net.predict(data)
         zz = zz.reshape(xx.shape)
         print(plt.cm)
-        plot.contourf(xx,yy,zz, alpha=0.8, cmap='hsv')
+        plot.contourf(xx,yy,zz, alpha=0.8, cmap='magma')
 
         # Dibujar lineas una por neurona
         #print('w',net.w)
@@ -124,7 +124,7 @@ class Ventana:
         n_neuronas = int(self.numeroNeuronas.get())
         epocas = int(self.epocas.get())
         ultimacapa_tam = 1
-        net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam),output_activation=linear)
+        net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam),output_activation=logistic)
         #net = RedNeuronalUnicapa(n_entradas, n_neuronas,logistic)
         net.fit(X,Y, epocas)
         Y_est = net.predict(X)
