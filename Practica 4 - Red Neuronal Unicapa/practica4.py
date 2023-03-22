@@ -112,7 +112,7 @@ class Ventana:
         epocas = int(self.epocas.get())
         #ultimacapa_tam = 1
         #net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam),output_activation=linear)
-        net = RedNeuronalUnicapa(n_entradas, n_neuronas,linear)
+        net = RedNeuronalUnicapa(n_entradas, n_neuronas,logistic)
         net.fit(X,Y, epocas)
         Y_est = net.predict(X)
         print('Resultados Originales\n',Y)
