@@ -131,13 +131,10 @@ def MLP_binary_classification_2d(X,Y,net):
 
 # Prueba con datos propios
 X = np.loadtxt(fname= 'X.csv',delimiter=',').T
-Y = np.loadtxt(fname= 'Y.csv',delimiter=',')
+Y = np.loadtxt(fname= 'Y.csv',delimiter=',').T
 Y = np.array([Y]) # Se necesita convertir a matriz
 
-net = DenseNetwork((2,20,1))
-print(net.predict(X))
-MLP_binary_classification_2d(X,Y,net)
-
-net.train(X, Y)
+net = DenseNetwork((2,2,1))
+net.fit(X, Y, epochs=10000)
 print(net.predict(X))
 MLP_binary_classification_2d(X,Y,net)

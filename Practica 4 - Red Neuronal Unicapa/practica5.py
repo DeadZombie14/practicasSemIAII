@@ -1,3 +1,4 @@
+# Mendoza Morelos Martin Mathier Practica 5
 import tkinter as tk
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 class Ventana:
     def __init__(self):
         self.window = tk.Tk()
-        self.window.title('Practica 4 Red Neuronal Unicapa')
+        self.window.title('Practica 5 Red Neuronal Multicapa')
         self.window.resizable(False,False)
         self.window.protocol("WM_DELETE_WINDOW", self.cerrar)
 
@@ -67,6 +68,22 @@ class Ventana:
             text = "Entrenar")
         procesarBtn.pack(padx=10, pady=(0,10))
 
+        self.error = tk.StringVar(value=str(0))
+        errorFrame = tk.Frame(acciones)
+        errorLabel = tk.Label(master=errorFrame, text="Error actual:")
+        errorLabel.pack(side='top')
+        errorEntry = tk.Entry(master=errorFrame, state='disabled', textvariable=self.error)
+        errorEntry.pack(side='bottom')
+        errorFrame.pack(padx=10, pady=10)
+
+        self.epoca = tk.StringVar(value=str(0))
+        epocaFrame = tk.Frame(acciones)
+        epocaLabel = tk.Label(master=epocaFrame, text="Epoca actual:")
+        epocaLabel.pack(side='top')
+        epocaEntry = tk.Entry(master=epocaFrame, state='disabled', textvariable=self.epoca)
+        epocaEntry.pack(side='bottom')
+        epocaFrame.pack(padx=10, pady=10)
+
         self.window.mainloop()
     def leerDatos(self, archivo):
         datos = np.loadtxt(
@@ -92,47 +109,73 @@ class Ventana:
                    [1,1,0],
                    [0,0,1],
                    [1,0,1],
-                   [0,1,1],
-                   [1,1,1]]
-        # Dibujar puntos
-        # for i in range(X.shape[1]):
-        #     plot.plot(X[0,i], X[1,i], marker='o', color=colores[int(np.average(Y[i]) * 10)])
+                   [0,1,1]]
+        #y_c = np.sum(Y, axis=0, dtype=int)
+        #y_c = np.argmax(Y, axis=0)
         
-        # Dibujar contornos de resultados
-        # xmin, ymin=np.min(X[0,:])-0.5, np.min(X[1,:])-0.5
-        # xmax, ymax=np.max(X[0,:])+0.5, np.max(X[1,:])+0.5
-        # xx, yy = np.meshgrid(np.linspace(xmin,xmax, 100),np.linspace(ymin,ymax, 100))
-        # data = np.array([xx.ravel(), yy.ravel()])
-        # zz = net.predict(data)
-        # zz = zz.reshape(xx.shape)
-        # print(plt.cm)
-        # plot.contourf(xx,yy,zz, alpha=0.8, cmap='magma')
+        # Crear combinaciones
+        combinaciones = Y.T
 
-        # Dibujar lineas una por neurona
-        # for i in range(n_neuronas):
-        #     w1, w2, b = net.w[1][i][0], net.w[1][i][1], net.b[1][i]
-        #     plot.plot([-2,2], [(1/w2)*(-w1*(-2)-b), (1/w2)*(-w1*2-b)], '--b')
+        # Crear arreglo de unicos
+        combUnicas = np.unique(combinaciones, axis=0)
+        
+        # Darle un ID a cada combinacion
+        y_c = []
+        for i in combinaciones:
+            id = 0
+            for c in range(combUnicas.shape[0]):
+                if(i == combUnicas[c]).all():
+                    id = c
+            y_c.append(id)
+
+        # Dibujar puntos
         for p in range(X.shape[1]):
-            plot.plot(X[0,p], X[1,p], marker='o')
-        for i in range(n_neuronas):
-            w1, w2, b = net.w[i][0], net.w[i][1], net.b[i]
-            plot.plot([-2,2], [(1/w2)*(-w1*(-2)-b), (1/w2)*(-w1*2-b)], linewidth=1, marker='.', color=colores[i])
+            plot.plot(X[0,p], X[1,p], marker='o', c=colores[y_c[p]])
 
+        # Dibujar lineas para cada neurona de la primera capa
+        # capa = 2
+        # for i in range(net.b[capa].shape[0]):
+        #     # Encontrar que clase predice esta neurona (en base a su distancia con punto mas cercano)
+        #     w1, w2 = net.w[capa][i][0],net.w[capa][i][1]  
+        #     b = net.b[capa][i]
+        #     plot.plot([-2,2], [(1/w2)*(-w1*(-2)-b), (1/w2)*(-w1*2-b)], linewidth=1, marker='.')
+
+        # Dibujar contornos de resultados, mapeando puntos
+        xmin, ymin=np.min(X[0,:])-2, np.min(X[1,:])-2
+        xmax, ymax=np.max(X[0,:])+2, np.max(X[1,:])+2
+        xx, yy = np.meshgrid(np.linspace(xmin,xmax, 100),np.linspace(ymin,ymax, 100))
+        data = np.array([xx.ravel(), yy.ravel()])
+        zz = net.predict(data)
+        zz = zz.reshape(xx.shape)
+        plot.contourf(xx,yy,zz, alpha=0.8, cmap=plt.cm.binary)
+        
         self.canvas.draw()
     def entrenarRedNeuronal(self):
         X = self.leerDatos('X.csv').T
         Y = self.leerDatos('Y.csv').T
         n_entradas = X.shape[0] # 2 porque solo hay X1 y X2
-        n_neuronas = int(self.numeroNeuronas.get())
+        
+        # Calcular numero de neuronas en base a Y
+        #n_neuronas = int(self.numeroNeuronas.get())
+        n_neuronas = 1
+        self.numeroNeuronas.set(str(n_neuronas))
+
         epocas = int(self.epocas.get())
-        #ultimacapa_tam = 1
-        #net = DenseNetwork((n_entradas, n_neuronas, ultimacapa_tam),output_activation=logistic)
-        net = RedNeuronalUnicapa(n_entradas, n_neuronas,logistic)
-        net.fit(X,Y, epocas)
+        net = DenseNetwork((n_entradas, 20, n_neuronas))
+        def animar():
+            from time import sleep
+            Y_est = net.predict(X)
+            self.dibujarResultados(X, Y, Y_est, net, self.plot, n_neuronas)
+            self.error.set(str(net.error))
+            self.epoca.set(str(net.epocaActual))
+            sleep(0.0001)
+            self.window.update()
+        net.fit(X,Y, epocas, margen_error=0.01,callback=animar)
         Y_est = net.predict(X)
-        print('Resultados Originales\n',Y)
-        print('Resultados Predecidos\n',Y_est)
         self.dibujarResultados(X, Y, Y_est, net, self.plot, n_neuronas)
+        print('Resultados Originales\n',Y)
+        for neurona in range(n_neuronas):
+            print('Resultados Predecidos Neurona #',(neurona+1),': ',Y_est[neurona])
 
 ### Funciones de activacion
 def linear(z, derivada=False):
@@ -155,30 +198,6 @@ def tanh(z, derivada=False):
         da = (1 - a) * (1 + a)
         return a, da
     return a
-
-class RedNeuronalUnicapa:
-    def __init__(self, n_inputs, n_outputs, funcionActivacion=linear):
-        self.w = -1 + 2 * np.random.rand(n_outputs, n_inputs)
-        self.b = -1 + 2 * np.random.rand(n_outputs, 1)
-        self.f = funcionActivacion
-
-    def predict(self, X):
-        Z = self.w @ X + self.b
-        return self.f(Z)
-    
-    def fit(self, X, Y, epocas=500, factorAprendizaje=0.1):
-        p = X.shape[1]
-        for _ in range(epocas):
-            # Propagar la red
-            Z = self.w @ X + self.b
-            Yest, dY = self.f(Z, derivada=True)
-            
-            # Calcular el gradiente
-            lg = (Y - Yest) * dY
-
-            # Actualización de parámetros
-            self.w += (factorAprendizaje/p) * lg @ X.T
-            self.b += (factorAprendizaje/p) * np.sum(lg)
 
 class DenseNetwork:
     def __init__(self, layers_dim, hidden_activation=tanh, output_activation=logistic):
@@ -205,10 +224,11 @@ class DenseNetwork:
             a = self.f[l](z)
         return a
     
-    def fit(self, X, Y, epochs=500, lr=0.1):
+    def fit(self, X, Y, epochs=500, lr=0.1, margen_error=0.1, callback=None):
         p = X.shape[1]
         # SGD
-        for _ in range(epochs):
+        self.epocaActual=0
+        while (True):
             # Initiliaze activations and gradients
             a = [None] * (self.L + 1)
             da =  [None] * (self.L + 1)
@@ -218,11 +238,12 @@ class DenseNetwork:
             a[0] = X
             for l in range(1, self.L+1):
                 z = self.w[l] @ a[l-1] + self.b[l]
-                a[l], da[l] = self.f[l](z, True)
+                a[l], da[l] = self.f[l](z, derivada=True)
             
             # Backpropagation
             for l in range(self.L, 0, -1):
                 if l == self.L:
+                    self.error = np.average(abs((Y - a[l])))
                     lg[l] = - (Y - a[l]) * da[l]
                 else:
                     lg[l] = (self.w[l+1].T @ lg[l+1]) * da[l]
@@ -231,6 +252,47 @@ class DenseNetwork:
             for l in range(1, self.L+1):
                 self.w[l] -= (lr/p) * (lg[l] @ a[l-1].T)
                 self.b[l] -= (lr/p) * np.sum(lg[l]) # Añadir axis=0 si falla
+            
+            # Animation
+            if(callback):
+                callback()
+
+            # Break condition
+            self.epocaActual = self.epocaActual + 1
+            if( self.error < margen_error or self.epocaActual > epochs ):
+                break
+
+class RedNeuronalUnicapa:
+    def __init__(self, n_inputs, n_outputs, funcionActivacion=linear):
+        self.w = -1 + 2 * np.random.rand(n_outputs, n_inputs)
+        self.b = -1 + 2 * np.random.rand(n_outputs, 1)
+        self.f = funcionActivacion
+
+    def predict(self, X):
+        Z = self.w @ X + self.b
+        return self.f(Z)
+    
+    def fit(self, X, Y, epocas=500, factorAprendizaje=0.1, callback=None):
+        p = X.shape[1]
+        self.epocaActual=0
+        while (True):
+            # Propagar la red
+            Z = self.w @ X + self.b
+            Yest, dY = self.f(Z, derivada=True)
+            
+            # Calcular el gradiente
+            self.error = abs(np.average((Y - Yest)))
+            lg = (Y - Yest) * dY
+
+            # Actualización de parámetros
+            self.w += (factorAprendizaje/p) * lg @ X.T
+            self.b += (factorAprendizaje/p) * np.sum(lg)
+
+            if(callback):
+                callback()
+            self.epocaActual = self.epocaActual + 1
+            if( self.error < 0.0001 or self.epocaActual > epocas ):
+                break
 
 class VentanaGenerarDataset:
     def __init__(self, ventanaPadre=None):
