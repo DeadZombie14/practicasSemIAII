@@ -98,7 +98,7 @@ class DenseNetwork:
             # Gradient Descent
             for l in range(1, self.L+1):
                 self.w[l] -= (lr/p) * (lg[l] @ a[l-1].T)
-                self.b[l] -= (lr/p) * np.sum(lg[l]) # Añadir axis=0 si falla
+                self.b[l] -= (lr/p) * np.sum(lg[l], axis=1, keepdims=True) # Añadir axis=0 si falla
 
 # net = DenseNetwork((2,10,1))
 
@@ -135,6 +135,6 @@ Y = np.loadtxt(fname= 'Y.csv',delimiter=',').T
 Y = np.array([Y]) # Se necesita convertir a matriz
 
 net = DenseNetwork((2,2,1))
-net.fit(X, Y, epochs=10000)
+net.fit(X, Y, epochs=5000)
 print(net.predict(X))
 MLP_binary_classification_2d(X,Y,net)
