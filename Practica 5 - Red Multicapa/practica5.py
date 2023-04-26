@@ -4,6 +4,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+### Funciones de activacion
+def linear(z, derivada=False):
+    a = z
+    if derivada:
+        da = np.ones(z.shape)
+        return a, da
+    return a
+
+def logistic(z, derivada=False):
+    a = 1 / (1 + np.exp(-z))
+    if derivada:
+        da = np.ones(z.shape)
+        return a, da
+    return a
+
+def tanh(z, derivada=False):
+    a = np.tanh(z)
+    if derivada:
+        da = (1 - a) * (1 + a)
+        return a, da
+    return a
+
+capa_oculta = tanh
+capa_salida = logistic
+
 class Ventana:
     def __init__(self):
         self.window = tk.Tk()
@@ -147,7 +172,23 @@ class Ventana:
 
         self.capasOcultas = []
 
+        self.animacion = True
+        self.animacionBtn = tk.Button(
+            master = acciones,
+            command = self.quitarAnimacion,
+            height = 2,
+            width = 20,
+            text = "Deshabilitar animacion")
+        self.animacionBtn.pack(padx=10, pady=(0,10))
+
         self.window.mainloop()
+    def quitarAnimacion(self):
+        if(self.animacion):
+            self.animacion = False
+            self.animacionBtn.config(text="Habilitar animacion")
+        else:
+            self.animacion = True
+            self.animacionBtn.config(text="Deshabilitar animacion")
     def leerDatos(self, archivo):
         datos = np.loadtxt(
             fname= archivo,
@@ -290,7 +331,7 @@ class Ventana:
         n_entradas = self.n_entradas
         n_salidas = self.n_salidas
         #net = RedNeuronalMulticapa((2, 20, 1))
-        net = RedNeuronalMulticapa(tuple(self.capas))
+        net = RedNeuronalMulticapa(tuple(self.capas),hidden_activation=capa_oculta, output_activation=capa_salida)
 
         epocas = int(self.epocas.get())
         self.plotError.clear()
@@ -303,34 +344,15 @@ class Ventana:
             self.dibujarError(net.error, net.epocaActual)
             sleep(0.0001)
             self.window.update()
-        net.fit(X,Y, epocas, margen_error=float(self.errorMax.get()),callback=animar)
+        if(self.animacion):
+            net.fit(X,Y, epocas, margen_error=float(self.errorMax.get()),callback=animar)
+        else:
+            net.fit(X,Y, epocas, margen_error=float(self.errorMax.get()),callback=None)
         Y_est = net.predict(X)
         self.dibujarResultados(X, Y, Y_est, net, self.plot, n_salidas)
         print('Resultados Originales\n',Y)
         for neurona in range(n_salidas):
             print('Resultados Predecidos Neurona #',(neurona+1),': ',Y_est[neurona])
-
-### Funciones de activacion
-def linear(z, derivada=False):
-    a = z
-    if derivada:
-        da = np.ones(z.shape)
-        return a, da
-    return a
-
-def logistic(z, derivada=False):
-    a = 1 / (1 + np.exp(-z))
-    if derivada:
-        da = np.ones(z.shape)
-        return a, da
-    return a
-
-def tanh(z, derivada=False):
-    a = np.tanh(z)
-    if derivada:
-        da = (1 - a) * (1 + a)
-        return a, da
-    return a
 
 class RedNeuronalMulticapa:
     def __init__(self, layers_dim, hidden_activation=tanh, output_activation=logistic):
