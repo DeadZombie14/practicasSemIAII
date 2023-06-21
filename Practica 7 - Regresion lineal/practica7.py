@@ -411,7 +411,7 @@ class RedNeuronalMulticapa:
                 self.b[l] = self.b[l] - (eta/p) * np.sum(lg[l], axis=1, keepdims=True) #, axis=1, keepdims=True
             
             # Animation
-            if(callback):
+            if(callback and self.epocaActual % 60 == 0):
                 callback()
 
             # Break condition
